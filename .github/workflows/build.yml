@@ -1,4 +1,4 @@
-name: Build 3DS
+name: Build 3DS Homebrew (PRO)
 
 on:
   workflow_dispatch:
@@ -8,17 +8,50 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: devkitpro/devkitarm:latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Build
-        run: make
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git wget xz-utils make
 
-      - name: Upload
+      - name: Install devkitPro (official setup)
+        run: |
+          echo "Installing devkitPro..."
+
+          wget https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x install-devkitpro-pacman
+          sudo ./install-devkitpro-pacman
+
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm 3ds-dev
+
+      - name: Setup environment
+        run: |
+          echo "DEVKITPRO=/opt/devkitpro" >> $GITHUB_ENV
+          echo "DEVKITARM=/opt/devkitpro/devkitARM" >> $GITHUB_ENV
+          echo "PATH=$PATH:/opt/devkitpro/devkitARM/bin" >> $GITHUB_ENV
+
+      - name: Build project
+        run: |
+          make
+
+      - name: Upload 3DS build
         uses: actions/upload-artifact@v4
         with:
-          name: RSA3DS
-          path: "*.3dsx"
+          name: RSA3DS-build
+          path: |
+            *.3dsx
+            *.elf
+
+      - name: Create Release (optional but nice)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            *.3dsx
+            *.elf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
