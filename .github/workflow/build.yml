@@ -1,8 +1,8 @@
 name: Build 3DS
 
 on:
-  push:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
@@ -12,17 +12,13 @@ jobs:
       image: devkitpro/devkitarm:latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Build
-        run: |
-          make
+        run: make
 
-      - name: Upload artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: RSA3DS
-          path: |
-            *.3dsx
-            *.elf
+          path: "*.3dsx"
