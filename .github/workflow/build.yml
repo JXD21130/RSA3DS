@@ -1,0 +1,27 @@
+```yaml
+name: Build 3DS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: devkitpro/devkitarm:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          make
+
+      - name: Upload .3dsx
+        uses: actions/upload-artifact@v4
+        with:
+          name: RSA3DS
+          path: "*.3dsx"
+```
